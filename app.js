@@ -8,6 +8,7 @@ const reason = document.getElementById('reason');
 const amount = document.getElementById('amount');
 
 // Temporary array of transactions - to be replaced with local storage
+const TRANSACTION_STORAGE_KEY = 'T_INFO';
 const Transactions = [
     // { id: 1, reason: 'Salary', amount: 5000 },
     // { id: 2, reason: 'Breakfast', amount: -20 },
@@ -17,6 +18,27 @@ const Transactions = [
 
 // Get transaction data from storage
 let transactions = Transactions;
+
+// Function to save transactions in local storage
+function saveTransaction() {
+    localStorage.setItem(
+        TRANSACTION_STORAGE_KEY,
+        JSON.stringify(transactions)
+    );
+}
+
+// Function that checks saved transactions from local storage and loads if found
+function checkLocalStorageSession() {
+    try {
+        const savedTransactions = localStorage.getItem(TRANSACTION_STORAGE_KEY);
+        if (savedTransactions === null) return;
+        // Decoding Json encoded session and loading to memory
+        transactions = JSON.parse(savedTransactions);
+    }
+    catch {
+        localStorage.removeItem(TRANSACTION_STORAGE_KEY);
+    }
+}
 
 // Function to display transactions in DOM - History section
 function displayTransaction(transaction) {
@@ -78,6 +100,8 @@ function addTransaction(e) {
         }
         // Push the new transaction into the transactions array
         transactions.push(transaction);
+        // Saving transactions to local storage session
+        saveTransaction();
         // Display the new transaction in the DOM
         displayTransaction(transaction);
         // Update all balances
@@ -92,12 +116,16 @@ function addTransaction(e) {
 function deleteTransaction(id) {
     // Filter out the transaction with the provided id
     transactions = transactions.filter(transaction => transaction.id !== id);
+    // Saving changes also in local storage
+    saveTransaction();
     // Initialize the app again to update the DOM
     init();
 };
 
 // Function to Initialize the Application
 function init() {
+    // Checking previous session data
+    checkLocalStorageSession();
     // Clear all transaction history
     list.innerHTML = '';
     // Display all transactions in db in the DOM
